@@ -1,0 +1,51 @@
+!pip install xgboost
+
+import xgboost as xgb
+import pandas as pd
+import numpy as np
+from sklearn.metrics import mean_absolute_error, mean_squared_log_error
+
+xg_reg=xgb.XGBRegressor(objective='reg:linear',
+                       colsample_bytree=0.8, #ilośc kolumn dla każdego drzewa
+                       colsmaple_bylevel=0.9, #kolejny podział kolumn dla każdego z poziomów
+                       colsample_bynode=0.9, #kolejny opdział na wężle
+                       learning_rate=0.01, #zmiana wagi dla zmiennej
+                       max_depth=9, # głębokość modelu
+                       gamma=0, #regularyzacja minimalna wartość informacyjne, żeby podzielić node
+                       alfha=5,
+                       n_estimators=500) #ilość iteracji)
+
+train = pd.read_csv(r'D:\Anna\data_set_titanic\train.csv')
+test = pd.read_csv(r"D:\Anna\data_set_titanic\test.csv")
+
+X=train.drop(['Survived', 'Name', 'Sex', 'Ticket', 'Cabin', 'Embarked'], axis=1).copy()
+y=train['Survived'].copy()
+Xa=test.drop(['Survived',  'Name', 'Sex', 'Ticket', 'Cabin', 'Embarked' ], axis=1).copy()
+ya=test['Survived'].copy()
+
+xg_reg.fit(X, y)
+predictions=xg_reg.predict(Xa)
+
+print(f'MAE: {mean_absolute_error(ya, predictions)}')
+
+!pip install lightgbm
+
+import lightgbm as lgb
+lgb_train=lgb.Dataset(X, y)
+lgb_eval=lgb.Dataset(Xa, ya, reference=lgb_train)
+
+params ={
+    'boosting_type': 'gbdt', # cztery pozostałe modele: (dart, linear, goss, rf)
+    'objective': 'regression', # definicja problemu
+    'metric': {'11', '12'}, # metryki które będą wyśl=wietlane przy walidacji
+    'max_depth': 10, # -1 oznacza nieskończoną głębokość
+    'num_leaves': 500,
+    'learning_rate': 0.01,
+    'feature_fraction': 0.8, # ilośc kolumn losowana do każdego drzewa
+    'bagging_fraction': 0.9, # ilośc rekordów losowana do każdego drzewa
+    'bagging_freq': 20, #co ile iterazji będzie bagging
+    'verbose': 0, #wyświetlanie wyników  
+    'force_col_wise': 'False',
+    'force_row_wise': 'False'
+    
+}
